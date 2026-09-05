@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
-"""Generate README ASCII banner — inner width 65 (ai-game-factory-pipeline)."""
+"""Generate README ASCII banner — matches ai-software-factory-pipeline layout."""
 from __future__ import annotations
 
 from pathlib import Path
 
 import pyfiglet
 
-INNER = 65
+INNER = 88  # chars between ║ and ║ (border line length = INNER + 2)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FONT = "ansi_shadow"
 
@@ -32,39 +32,47 @@ def empty() -> str:
     return row("")
 
 
-def figlet_rows(text: str) -> list[str]:
-    """Render block letters; center each row to INNER width."""
-    rendered = pyfiglet.figlet_format(text, font=FONT)
-    rows: list[str] = []
-    for line in rendered.splitlines():
-        stripped = line.rstrip()
-        if not stripped:
-            continue
-        if len(stripped) > INNER:
-            raise ValueError(f"{text!r} row too wide ({len(stripped)}): {stripped!r}")
-        rows.append(stripped.center(INNER))
-    if not rows:
-        raise ValueError(f"empty figlet for {text!r}")
-    return rows
+def figlet_block(text: str) -> list[str]:
+    lines = [ln.rstrip() for ln in pyfiglet.figlet_format(text, font=FONT).splitlines() if ln.strip()]
+    if len(lines) != 6:
+        raise ValueError(f"expected 6 figlet rows for {text!r}, got {len(lines)}")
+    return lines
+
+
+def pad_art(line: str) -> str:
+    """Leading space + left align — same as ai-software-factory-pipeline."""
+    return (" " + line.rstrip()).ljust(INNER)[:INNER]
+
+
+def join_words(left: str, right: str, gap: int = 2) -> list[str]:
+    """Side-by-side block letters on one row (AI GAME / BUG BOUNTY style)."""
+    a, b = figlet_block(left), figlet_block(right)
+    spacer = " " * gap
+    return [pad_art(x + spacer + y) for x, y in zip(a, b, strict=True)]
+
+
+def single_block(text: str) -> list[str]:
+    return [pad_art(ln) for ln in figlet_block(text)]
 
 
 def build_banner() -> str:
-    lines = [border_top(), empty()]
-    for word in ("BUG", "BOUNTY"):
-        lines.extend(row(r) for r in figlet_rows(word))
-    lines.append(empty())
-    lines.extend(row(r) for r in figlet_rows("PIPELINE"))
-    lines.extend(
-        [
-            empty(),
-            row("  Bug bounty AI pipeline — dossiers → hunt / autopilot / submit "),
-            row("     Cursor · memo-session-skill · goal-mode · interceptor       "),
-            row("  /portfolio · /new · /sync · /hunt · /autopilot · /validate    "),
-            row(" git clone https://github.com/shenwell/bug-bounty-ai-pipeline    "),
-            empty(),
-            border_bottom(),
-        ]
-    )
+    bug_bounty = join_words("BUG", "BOUNTY")
+    pipeline = single_block("PIPELINE")
+
+    lines = [
+        border_top(),
+        empty(),
+        *map(row, bug_bounty),
+        empty(),
+        *map(row, pipeline),
+        empty(),
+        row("        Two-phase bug bounty pipeline for Cursor — dossiers to hunt / submit        "),
+        row("          Cursor · memo-session-skill · goal-mode · interceptor                       "),
+        row("       /portfolio · /new · /sync · /hunt · /autopilot · /validate · MIT              "),
+        row("     git clone https://github.com/shenwell/bug-bounty-ai-pipeline                    "),
+        empty(),
+        border_bottom(),
+    ]
     return "```\n" + "\n".join(lines) + "\n```"
 
 
