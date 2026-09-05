@@ -44,25 +44,21 @@ def pad_art(line: str) -> str:
     return (" " + line.rstrip()).ljust(INNER)[:INNER]
 
 
-def join_words(left: str, right: str, gap: int = 2) -> list[str]:
-    """Side-by-side block letters on one row (AI GAME / BUG BOUNTY style)."""
-    a, b = figlet_block(left), figlet_block(right)
-    spacer = " " * gap
-    return [pad_art(x + spacer + y) for x, y in zip(a, b, strict=True)]
-
-
 def single_block(text: str) -> list[str]:
     return [pad_art(ln) for ln in figlet_block(text)]
 
 
 def build_banner() -> str:
-    bug_bounty = join_words("BUG", "BOUNTY")
+    bug = single_block("BUG")
+    bounty = single_block("BOUNTY")
     pipeline = single_block("PIPELINE")
 
     lines = [
         border_top(),
         empty(),
-        *map(row, bug_bounty),
+        *map(row, bug),
+        empty(),
+        *map(row, bounty),
         empty(),
         *map(row, pipeline),
         empty(),
