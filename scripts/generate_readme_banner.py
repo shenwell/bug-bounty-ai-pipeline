@@ -1,27 +1,14 @@
 #!/usr/bin/env python3
 """Generate README ASCII banner — inner width 65 (ai-game-factory-pipeline)."""
+from __future__ import annotations
+
 from pathlib import Path
+
+import pyfiglet
 
 INNER = 65
 REPO_ROOT = Path(__file__).resolve().parent.parent
-
-BOUNTY = [
-    "██████╗  ██████╗ ██╗   ██╗███╗   ██╗████████╗██╗   ██╗          ",
-    "██╔══██╗██╔═══██╗██║   ██║████╗  ██║╚══██╔══╝╚██╗ ██╔╝          ",
-    "██████╔╝██║   ██║██║   ██║██╔██╗ ██║   ██║    ╚████╔╝           ",
-    "██╔══██╗██║   ██║██║   ██║██║╚██╗██║   ██║     ╚██╔╝            ",
-    "██████╔╝╚██████╔╝╚██████╔╝██║ ╚████║   ██║      ██║             ",
-    "╚═════╝  ╚═════╝  ╚═════╝ ╚═╝  ╚═══╝   ╚═╝      ╚═╝             ",
-]
-
-PIPELINE = [
-    " ██████╗ ██╗██████╗ ███████╗██╗     ██╗███╗   ██╗███████╗        ",
-    " ██╔══██╗██║██╔══██╗██╔════╝██║     ██║████╗  ██║██╔════╝        ",
-    " ██████╔╝██║██████╔╝█████╗  ██║     ██║██╔██╗ ██║█████╗          ",
-    " ██╔═══╝ ██║██╔═══╝ ██╔══╝  ██║     ██║██║╚██╗██║██╔══╝          ",
-    " ██║     ██║██║     ███████╗███████╗██║██║ ╚████║███████╗        ",
-    " ╚═╝     ╚═╝╚═╝     ╚══════╝╚══════╝╚═╝╚═╝  ╚═══╝╚══════╝        ",
-]
+FONT = "ansi_shadow"
 
 
 def border_top() -> str:
@@ -45,13 +32,28 @@ def empty() -> str:
     return row("")
 
 
+def figlet_rows(text: str) -> list[str]:
+    """Render block letters; center each row to INNER width."""
+    rendered = pyfiglet.figlet_format(text, font=FONT)
+    rows: list[str] = []
+    for line in rendered.splitlines():
+        stripped = line.rstrip()
+        if not stripped:
+            continue
+        if len(stripped) > INNER:
+            raise ValueError(f"{text!r} row too wide ({len(stripped)}): {stripped!r}")
+        rows.append(stripped.center(INNER))
+    if not rows:
+        raise ValueError(f"empty figlet for {text!r}")
+    return rows
+
+
 def build_banner() -> str:
     lines = [border_top(), empty()]
-    for art in BOUNTY:
-        lines.append(row(art))
+    for word in ("BUG", "BOUNTY"):
+        lines.extend(row(r) for r in figlet_rows(word))
     lines.append(empty())
-    for art in PIPELINE:
-        lines.append(row(art))
+    lines.extend(row(r) for r in figlet_rows("PIPELINE"))
     lines.extend(
         [
             empty(),
