@@ -9,6 +9,9 @@ import pyfiglet
 INNER = 88  # chars between ║ and ║ (border line length = INNER + 2)
 REPO_ROOT = Path(__file__).resolve().parent.parent
 FONT = "ansi_shadow"
+BUG_BOUNTY_LETTER_GAP = 0
+BUG_BOUNTY_WORD_GAP = 3
+MAX_ART = INNER - 1  # pad_art adds one leading space
 
 
 def border_top() -> str:
@@ -39,8 +42,41 @@ def figlet_block(text: str) -> list[str]:
     return lines
 
 
+def letter_rows(ch: str) -> list[str]:
+    rows = [ln.rstrip() for ln in pyfiglet.figlet_format(ch, font=FONT).splitlines() if ln.strip()]
+    if len(rows) != 6:
+        raise ValueError(f"expected 6 rows for letter {ch!r}, got {len(rows)}")
+    return rows
+
+
+def word_rows(word: str, letter_gap: int) -> list[str]:
+    blocks = [letter_rows(c) for c in word]
+    spacer = " " * letter_gap
+    return [spacer.join(b[i] for b in blocks) for i in range(6)]
+
+
+def merge_words_horizontal(words: list[str], letter_gap: int, word_gap: int) -> list[str]:
+    """Two words on the same 6 rows — per-letter columns (not whole-word figlet join)."""
+    parts = [word_rows(w, letter_gap) for w in words]
+    wg = " " * word_gap
+    merged = [wg.join(parts[j][i] for j in range(len(parts))) for i in range(6)]
+    width = max(len(ln) for ln in merged)
+    if width > MAX_ART:
+        raise ValueError(f"merged art too wide ({width} > {MAX_ART})")
+    return merged
+
+
+def pick_bug_bounty_merge() -> list[str]:
+    for letter_gap in (0, 1):
+        for word_gap in range(6, 0, -1):
+            try:
+                return merge_words_horizontal(["BUG", "BOUNTY"], letter_gap, word_gap)
+            except ValueError:
+                continue
+    raise RuntimeError("could not fit BUG BOUNTY in one 6-row block")
+
+
 def pad_art(line: str) -> str:
-    """Leading space + left align — same as ai-software-factory-pipeline."""
     return (" " + line.rstrip()).ljust(INNER)[:INNER]
 
 
@@ -48,19 +84,17 @@ def single_block(text: str) -> list[str]:
     return [pad_art(ln) for ln in figlet_block(text)]
 
 
-def build_banner() -> str:
-    bug = single_block("BUG")
-    bounty = single_block("BOUNTY")
-    pipeline = single_block("PIPELINE")
+def bug_bounty_block() -> list[str]:
+    return [pad_art(ln) for ln in pick_bug_bounty_merge()]
 
+
+def build_banner() -> str:
     lines = [
         border_top(),
         empty(),
-        *map(row, bug),
+        *map(row, bug_bounty_block()),
         empty(),
-        *map(row, bounty),
-        empty(),
-        *map(row, pipeline),
+        *map(row, single_block("PIPELINE")),
         empty(),
         row("        Two-phase bug bounty pipeline for Cursor — dossiers to hunt / submit        "),
         row("          Cursor · memo-session-skill · goal-mode · interceptor                       "),
