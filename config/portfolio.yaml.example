@@ -1,0 +1,71 @@
+llm:
+  provider: stub
+  model: claude-sonnet-4-20250514
+  api_key_env: LLM_API_KEY
+  max_tokens: 8192
+  context_window: 110000
+
+standoff:
+  base_url: https://bugbounty.standoff365.com
+  auth_mode: cookie
+  session_cookie_env: STF_SESSION
+  username_env: STF_USERNAME
+  password_env: STF_PASSWORD
+  default_program_slug: standoff-365
+
+scope:
+  hard_out_of_scope:
+    - meet.standoff365.com
+    - chat.standoff365.com
+    - vpn.standoff365.com
+    - partners.standoff365.com
+  forbidden_actions:
+    - dos
+    - social_engineering
+    - physical
+    - data_destruction
+
+scoring:
+  min_score_to_hunt: 0.6
+  min_reportable_severity: medium
+  weights:
+    reward: 0.35
+    scope_size: 0.2
+    competency_match: 0.3
+    restrictions: 0.15
+
+limits:
+  rate_limit_rps: 2
+  scan_time_budget_min: 120
+  max_parallel_hunters: 5
+
+data:
+  artifacts_dir: data/artifacts
+  contracts_file: data/contracts.yaml
+  disclosed_reports_file: data/disclosed-reports.yaml
+  snapshots_dir: data/snapshots
+  dossiers_dir: data/dossiers
+  engagements_dir: engagements
+
+discover:
+  max_program_pages: 50
+  max_disclosed_pages: 100
+  fetch_disclosed_details: true
+  disclosed_detail_delay_ms: 300
+
+recon:
+  fetch_contract_links: true
+  max_contract_links: 25
+  max_link_bytes: 2000000
+  link_fetch_timeout_sec: 30
+
+monitor:
+  state_file: data/monitor/known-programs.json
+  bizone_base_url: https://bugbounty.bi.zone
+  max_pages: 50
+  page_delay_sec: 0.25
+  request_timeout_sec: 30.0
+
+database:
+  url_env: DATABASE_URL
+  default_url: sqlite:///data/portfolio.db

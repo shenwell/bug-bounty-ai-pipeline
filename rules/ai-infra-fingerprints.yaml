@@ -1,0 +1,76 @@
+# Curated AI infra fingerprints (reference: AIG taxonomy, exploit-path only)
+# Used by: intel_engine.py detect-ai-infra
+
+components:
+  - id: ollama
+    name: Ollama
+    ports: [11434]
+    path_signals: ["/api/tags", "/api/pull", "/api/push"]
+    header_signals: []
+    boost_class: llm-ai
+    cve_refs:
+      - CVE-2024-37032
+      - CVE-2024-39722
+      - CVE-2024-45436
+
+  - id: vllm
+    name: vLLM
+    ports: [8000, 8080]
+    path_signals: ["/v1/models", "/v1/completions", "/health"]
+    header_signals: ["vllm"]
+    boost_class: llm-ai
+    cve_refs: []
+
+  - id: comfyui
+    name: ComfyUI
+    ports: [8188]
+    path_signals: ["/prompt", "/queue", "/history"]
+    header_signals: []
+    boost_class: llm-ai
+    cve_refs: []
+
+  - id: open-webui
+    name: Open WebUI
+    ports: [3000, 8080]
+    path_signals: ["/api/v1/auths", "/api/chat/completions"]
+    header_signals: []
+    boost_class: llm-ai
+    cve_refs:
+      - CVE-2025-64496
+
+  - id: n8n
+    name: n8n
+    ports: [5678]
+    path_signals: ["/rest/workflows", "/webhook"]
+    header_signals: []
+    boost_class: llm-ai
+    cve_refs: []
+
+  - id: mlflow
+    name: MLflow
+    ports: [5000]
+    path_signals: ["/api/2.0/mlflow", "/ajax-api"]
+    header_signals: []
+    boost_class: llm-ai
+    cve_refs:
+      - CVE-2024-1483
+      - CVE-2024-1594
+
+mcp_signals:
+  - pattern: "@mcp.tool"
+    boost_class: llm-ai
+    subtype: mcp
+  - pattern: "/.well-known/mcp"
+    boost_class: llm-ai
+    subtype: mcp
+  - pattern: "modelcontextprotocol"
+    boost_class: llm-ai
+    subtype: mcp
+
+chat_ui_signals:
+  - pattern: "chat/completions"
+    boost_class: llm-ai
+  - pattern: "langchain"
+    boost_class: llm-ai
+  - pattern: "openai"
+    boost_class: llm-ai

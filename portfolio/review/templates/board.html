@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Портфель — Kanban</title>
+  <style>
+    :root {
+      --bg: #0d1117;
+      --surface: #161b22;
+      --surface-2: #1c2128;
+      --border: #30363d;
+      --text: #e6edf3;
+      --muted: #8b949e;
+      --accent: #58a6ff;
+      --shadow: 0 8px 24px rgba(0,0,0,.45);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, -apple-system, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #1a1147 0%, transparent 55%),
+                  radial-gradient(900px 500px at 90% 0%, #0d2818 0%, transparent 50%),
+                  var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: .75rem;
+      padding: .55rem .85rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(13,17,23,.85);
+      backdrop-filter: blur(8px);
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+    header h1 {
+      margin: 0;
+      font-size: 1.05rem;
+      font-weight: 700;
+      background: linear-gradient(90deg, #79c0ff, #bc8cff, #ff7b72);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
+    .nav { display: flex; gap: .5rem; align-items: center; }
+    .nav a, .btn-ghost {
+      color: var(--text);
+      text-decoration: none;
+      padding: .45rem .75rem;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+      background: var(--surface);
+      font-size: .875rem;
+      cursor: pointer;
+    }
+    .nav a:hover, .btn-ghost:hover { border-color: var(--accent); }
+    .meta { color: var(--muted); font-size: .75rem; }
+    .board {
+      display: flex;
+      gap: .45rem;
+      padding: .5rem;
+      overflow-x: auto;
+      align-items: flex-start;
+      min-height: calc(100vh - 56px);
+    }
+    .column {
+      flex: 0 0 var(--col-width, 200px);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      display: flex;
+      flex-direction: column;
+      max-height: calc(100vh - 68px);
+      box-shadow: var(--shadow);
+    }
+    .column.drag-over { outline: 2px dashed var(--accent); outline-offset: 2px; }
+    .column-header {
+      padding: .45rem .5rem;
+      border-bottom: 2px solid var(--col-color, var(--accent));
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: .25rem;
+      border-radius: 8px 8px 0 0;
+      background: linear-gradient(180deg, color-mix(in srgb, var(--col-color) 12%, transparent), transparent);
+    }
+    .column-step {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 1.1rem;
+      height: 1.1rem;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--col-color) 25%, #000);
+      color: var(--col-color);
+      font-size: .62rem;
+      font-weight: 800;
+      margin-right: .25rem;
+      flex-shrink: 0;
+    }
+    .column-title {
+      font-weight: 700;
+      font-size: .78rem;
+      letter-spacing: .01em;
+      color: var(--col-color, var(--accent));
+      line-height: 1.15;
+      display: flex;
+      align-items: center;
+      min-width: 0;
+    }
+    .column-title > span:last-child {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .column-hint {
+      display: none;
+      font-size: .64rem;
+      color: #b1bac4;
+      font-weight: 400;
+      letter-spacing: 0;
+      margin-top: .2rem;
+      line-height: 1.2;
+    }
+    .column:hover .column-hint,
+    body.expanded .column-hint {
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .column-count {
+      background: rgba(255,255,255,.08);
+      color: var(--muted);
+      font-size: .65rem;
+      padding: .1rem .35rem;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .column-body {
+      padding: .35rem;
+      overflow-y: auto;
+      flex: 1;
+      min-height: 48px;
+    }
+    .card {
+      background: var(--surface-2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .45rem .5rem;
+      margin-bottom: .35rem;
+      cursor: grab;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      box-shadow: 0 1px 4px rgba(0,0,0,.2);
+    }
+    .card:hover {
+      border-color: var(--col-color, var(--accent));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(0,0,0,.35);
+    }
+    .card.dragging { opacity: .45; cursor: grabbing; }
+    .card-title { font-weight: 600; font-size: .78rem; line-height: 1.2; margin-bottom: .2rem; }
+    .card-slug {
+      font-family: ui-monospace, Consolas, monospace;
+      font-size: .64rem;
+      color: var(--muted);
+      margin-bottom: .25rem;
+    }
+    .badges { display: flex; flex-wrap: wrap; gap: .2rem; margin-bottom: .2rem; }
+    .badge {
+      font-size: .6rem;
+      padding: .08rem .3rem;
+      border-radius: 999px;
+      font-weight: 600;
+      letter-spacing: .02em;
+    }
+    .badge-score { background: #1f3a5f; color: #79c0ff; }
+    .badge-findings { background: #2d1f47; color: #d2a8ff; }
+    .badge-submit { background: #3d1f1f; color: #ff7b72; }
+    .badge-leads { background: #1f3d2a; color: #56d364; }
+    .badge-platform { background: #2d1f47; color: #ff6bcb; }
+    .badge-new { background: #3d1f3d; color: #ff9cee; }
+    .card-note {
+      font-size: .64rem;
+      color: #f0883e;
+      margin-top: .2rem;
+      line-height: 1.25;
+      display: -webkit-box;
+      -webkit-line-clamp: 1;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    body.expanded .card-note { -webkit-line-clamp: 2; }
+    .card a.ext {
+      color: var(--accent);
+      font-size: .64rem;
+      text-decoration: none;
+    }
+    body.expanded {
+      --col-width: 240px;
+    }
+    body.expanded .board { gap: .6rem; padding: .75rem; }
+    body.expanded .column-header { padding: .65rem .7rem; }
+    body.expanded .card { padding: .6rem .65rem; }
+    body.expanded .card-title { font-size: .86rem; }
+    .btn-ghost.active { border-color: var(--accent); color: var(--accent); }
+    .toast {
+      position: fixed;
+      bottom: 1rem;
+      right: 1rem;
+      background: #238636;
+      color: #fff;
+      padding: .6rem 1rem;
+      border-radius: 8px;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all .2s ease;
+      pointer-events: none;
+      z-index: 100;
+    }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .toast.error { background: #da3633; }
+    .empty-hint {
+      color: var(--muted);
+      font-size: .78rem;
+      text-align: center;
+      padding: 1rem .5rem;
+      border: 1px dashed var(--border);
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Портфель контрактов</h1>
+      <div class="meta"><span id="total-count">{{ total }}</span> в портфеле · <span id="new-count">0</span> новых · перетаскивайте как в Trello</div>
+    </div>
+    <div class="nav">
+      <button class="btn-ghost" id="btn-density" type="button" title="Переключить плотность колонок">⊟ Компактно</button>
+      <button class="btn-ghost" id="btn-sync" type="button">Синхронизировать</button>
+      <a href="/">Review</a>
+    </div>
+  </header>
+
+  <div class="board" id="board"></div>
+  <script id="board-bootstrap" type="application/json">{{ initial_state_json | safe }}</script>
+  <div class="toast" id="toast"></div>
+
+  <script>
+    const boardEl = document.getElementById('board');
+    const toastEl = document.getElementById('toast');
+    let dragCardId = null;
+    let dragFromColumn = null;
+
+    function showToast(msg, isError = false) {
+      toastEl.textContent = msg;
+      toastEl.classList.toggle('error', isError);
+      toastEl.classList.add('show');
+      setTimeout(() => toastEl.classList.remove('show'), 2200);
+    }
+
+    function renderCard(card, colColor) {
+      const el = document.createElement('article');
+      el.className = 'card';
+      el.draggable = true;
+      el.dataset.cardId = card.id;
+      el.dataset.slug = card.slug;
+      el.style.setProperty('--col-color', colColor);
+
+      const badges = [];
+      if (card.is_monitor) badges.push('<span class="badge badge-new">NEW</span>');
+      if (card.platform_label) badges.push(`<span class="badge badge-platform">${escapeHtml(card.platform_label)}</span>`);
+      if (card.score != null) badges.push(`<span class="badge badge-score">${(card.score * 100).toFixed(0)}%</span>`);
+      if (card.findings_total) badges.push(`<span class="badge badge-findings">F ${card.findings_total}</span>`);
+      if (card.submit_ready) badges.push(`<span class="badge badge-submit">Submit ${card.submit_ready}</span>`);
+      if (card.leads_open) badges.push(`<span class="badge badge-leads">Leads ${card.leads_open}</span>`);
+
+      const note = card.blocker || card.next_step || '';
+      const seen = card.first_seen_at ? `Появилась: ${card.first_seen_at.slice(0, 10)}` : '';
+      const meta = note || seen;
+      const linkLabel = card.platform === 'bizone' ? 'BI.ZONE ↗' : (card.platform === 'standoff365' ? 'Standoff ↗' : 'Программа ↗');
+      const link = card.source_url
+        ? `<a class="ext" href="${card.source_url}" target="_blank" rel="noopener">${linkLabel}</a>`
+        : '';
+
+      el.innerHTML = `
+        <div class="card-title">${escapeHtml(card.name)}</div>
+        <div class="card-slug">${escapeHtml(card.slug)}</div>
+        <div class="badges">${badges.join('')}</div>
+        ${meta ? `<div class="card-note">${escapeHtml(meta)}</div>` : ''}
+        ${link}
+      `;
+
+      el.addEventListener('dragstart', (e) => {
+        dragCardId = card.id;
+        dragFromColumn = el.closest('.column').dataset.columnId;
+        el.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+        e.dataTransfer.setData('text/plain', card.id);
+      });
+      el.addEventListener('dragend', () => el.classList.remove('dragging'));
+      return el;
+    }
+
+    function escapeHtml(s) {
+      return String(s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function setupColumnDnD(columnEl, columnId) {
+      columnEl.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        e.dataTransfer.dropEffect = 'move';
+        columnEl.classList.add('drag-over');
+      });
+      columnEl.addEventListener('dragleave', (e) => {
+        if (!columnEl.contains(e.relatedTarget)) columnEl.classList.remove('drag-over');
+      });
+      columnEl.addEventListener('drop', async (e) => {
+        e.preventDefault();
+        columnEl.classList.remove('drag-over');
+        const cardId = e.dataTransfer.getData('text/plain') || dragCardId;
+        if (!cardId) return;
+
+        const body = columnEl.querySelector('.column-body');
+        const cards = [...body.querySelectorAll('.card')];
+        let position = cards.length;
+        const after = e.target.closest('.card');
+        if (after && after.dataset.cardId !== cardId) {
+          position = cards.indexOf(after);
+        }
+
+        if (dragFromColumn === columnId && position > cards.findIndex(c => c.dataset.cardId === cardId)) {
+          position = Math.max(0, position - 1);
+        }
+
+        await moveCard(cardId, columnId, position);
+      });
+    }
+
+    function parseCardId(cardId) {
+      const idx = cardId.indexOf(':');
+      if (idx > 0) {
+        return { slug: cardId.slice(idx + 1), platform: cardId.slice(0, idx), card_id: cardId };
+      }
+      return { slug: cardId, platform: null, card_id: cardId };
+    }
+
+    async function moveCard(cardId, columnId, position) {
+      const { slug, platform, card_id } = parseCardId(cardId);
+      try {
+        const res = await fetch('/api/board/move', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slug, platform, card_id, column_id: columnId, position }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.detail || res.statusText);
+        }
+        const data = await res.json();
+        renderBoard(data);
+        showToast(`«${slug}» → ${columnId.toUpperCase()}`);
+      } catch (err) {
+        showToast(err.message || 'Ошибка перемещения', true);
+        await loadBoard();
+      }
+    }
+
+    function renderBoard(state) {
+      boardEl.innerHTML = '';
+      document.getElementById('total-count').textContent = state.total;
+      document.getElementById('new-count').textContent = state.new_count ?? 0;
+      for (const col of state.columns) {
+        const colEl = document.createElement('section');
+        colEl.className = 'column';
+        colEl.dataset.columnId = col.id;
+        colEl.style.setProperty('--col-color', col.color);
+
+        const cards = state.cards[col.id] || [];
+        colEl.innerHTML = `
+          <div class="column-header" title="${escapeHtml(col.hint || '')}">
+            <div>
+              <div class="column-title">
+                ${col.step ? `<span class="column-step">${escapeHtml(col.step)}</span>` : ''}
+                <span>${escapeHtml(col.title)}</span>
+              </div>
+              ${col.hint ? `<div class="column-hint">${escapeHtml(col.hint)}</div>` : ''}
+            </div>
+            <span class="column-count">${cards.length}</span>
+          </div>
+          <div class="column-body"></div>
+        `;
+        const body = colEl.querySelector('.column-body');
+        if (!cards.length) {
+          body.innerHTML = '<div class="empty-hint">Пусто</div>';
+        } else {
+          for (const card of cards) body.appendChild(renderCard(card, col.color));
+        }
+        setupColumnDnD(colEl, col.id);
+        boardEl.appendChild(colEl);
+      }
+    }
+
+    async function loadBoard() {
+      const res = await fetch('/api/board', { cache: 'no-store' });
+      renderBoard(await res.json());
+    }
+
+    const bootstrap = document.getElementById('board-bootstrap');
+    if (bootstrap && bootstrap.textContent.trim()) {
+      try { renderBoard(JSON.parse(bootstrap.textContent)); }
+      catch { loadBoard(); }
+    } else {
+      loadBoard();
+    }
+
+    document.getElementById('btn-sync').addEventListener('click', async () => {
+      const res = await fetch('/api/board/sync', { method: 'POST' });
+      if (res.ok) {
+        renderBoard(await res.json());
+        showToast('Синхронизировано с досье');
+      } else {
+        showToast('Ошибка синхронизации', true);
+      }
+    });
+
+    const densityBtn = document.getElementById('btn-density');
+    const savedDensity = localStorage.getItem('board-density');
+    if (savedDensity === 'expanded') {
+      document.body.classList.add('expanded');
+      densityBtn.textContent = '⊞ Широко';
+      densityBtn.classList.add('active');
+    }
+    densityBtn.addEventListener('click', () => {
+      const expanded = document.body.classList.toggle('expanded');
+      localStorage.setItem('board-density', expanded ? 'expanded' : 'compact');
+      densityBtn.textContent = expanded ? '⊞ Широко' : '⊟ Компактно';
+      densityBtn.classList.toggle('active', expanded);
+    });
+  </script>
+</body>
+</html>

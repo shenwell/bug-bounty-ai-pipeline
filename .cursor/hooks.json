@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "subagentStop": [
+      {
+        "command": "uv run python3 .cursor/hooks/user_proxy_stop.py subagentStop",
+        "timeout": 30
+      },
+      {
+        "command": "uv run python3 .cursor/hooks/chain_pressure_hook.py",
+        "timeout": 15
+      }
+    ],
+    "stop": [
+      {
+        "command": "uv run python3 .cursor/hooks/user_proxy_stop.py stop",
+        "timeout": 30,
+        "loop_limit": 3
+      }
+    ]
+  }
+}

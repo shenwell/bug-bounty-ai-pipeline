@@ -1,0 +1,82 @@
+# Scan output (may contain sensitive target data)
+recon/
+findings/
+sast-work/
+scans/
+js-analysis/
+poc/
+evidence/
+
+# Findings database (contains vulnerability details)
+findings.json
+findings.csv
+
+# Environment and credentials
+.env
+.env.*
+!.env.*.example
+*.key
+*.pem
+tokens.txt
+
+# Tool caches
+.nuclei/
+.httpx/
+__pycache__/
+*.pyc
+.venv/
+.venv-*/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Reports (commit only sanitized versions)
+reports/drafts/
+
+# Scope file with active targets (use .example versions for git)
+# scope.yaml
+cost-tracking.json
+
+# Local brain state (bounty workspaces)
+brain/
+
+# Portfolio / hunt runtime (local only)
+data/contracts.yaml
+data/disclosed-reports.yaml
+data/snapshots/
+data/monitor/
+data/dossiers/*
+!data/dossiers/.gitkeep
+data/artifacts/
+
+# Per-program hunt runtime
+engagements/*
+!engagements/README.md
+!engagements/.gitkeep
+
+# Agent memory (runtime — memo-session-skill creates most files)
+MEMORY.md
+memory/hot-cache.md
+memory/warm-cache.md
+memory/open-loops.md
+memory/decisions.md
+memory/inbox/
+memory/changelog.md
+memory/archive/
+
+# Framework wiki templates (committed)
+!memory/
+!memory/wiki/
+!memory/wiki/**
+
+# Screenshots accidentally saved into the repo root
+[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].jpg
+[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_[0-9][0-9][0-9][0-9][0-9][0-9].png
+Screenshot*.png
+
+# Local-only files not meant for the repo
+uv.lock
+rag-builder/data/
+docs/superpowers/plans/
+docs/superpowers/specs/

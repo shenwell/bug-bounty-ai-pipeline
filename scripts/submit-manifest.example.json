@@ -1,0 +1,11 @@
+{
+  "lead": "LEAD-XXX",
+  "platform": "optional — standoff365, hackerone, bugcrowd, …",
+  "paste": "reports/submit/<platform>-<lead>-paste.md",
+  "screenshots": [
+    "evidence/<lead>/01-example.png"
+  ],
+  "json": [
+    "evidence/<lead>/http-poc-summary.json"
+  ]
+}
