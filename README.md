@@ -1,19 +1,23 @@
-<p align="center">
-  <img src="docs/assets/logo.svg" alt="Bug Bounty AI Pipeline" width="440"/>
-</p>
+```
+╔═══════════════════════════════════════════════════════════════╗
+║                                                               ║
+║        Bug Bounty AI Pipeline — kit for Cursor                  ║
+║    Phase 1 dossiers → Phase 2 hunt / autopilot / submit       ║
+║    discover · score · dossier · hunt · validate · report      ║
+║    /portfolio · /new · /sync · /hunt · /autopilot             ║
+║    github.com/shenwell/bug-bounty-ai-pipeline · MIT           ║
+║                                                               ║
+╚═══════════════════════════════════════════════════════════════╝
+```
 
-<h1 align="center">Bug Bounty AI Pipeline for Cursor</h1>
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white)](https://www.python.org/)
+[![Cursor](https://img.shields.io/badge/Cursor-native-000000)](https://cursor.com/)
+[![MCP servers ×2](https://img.shields.io/badge/MCP-servers%20%C3%97%202-2ea043)](#mcp-servers)
 
-<p align="center">
-  <em>Two-phase bug bounty framework — portfolio dossiers (Phase 1) and autonomous hunting (Phase 2).</em>
-</p>
+# Bug Bounty AI Pipeline
 
-<p align="center">
-  <img src="https://img.shields.io/badge/python-3.10%2B-blue?logo=python&logoColor=white" alt="Python 3.10+"/>
-  <img src="https://img.shields.io/badge/Cursor-native-000000" alt="Cursor"/>
-  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT"/>
-  <img src="https://img.shields.io/badge/MCP-servers%20%C3%97%202-2ea043" alt="MCP servers"/>
-</p>
+Two-phase bug bounty framework for **Cursor** — portfolio dossiers (Phase 1) and autonomous hunting (Phase 2).
 
 ---
 
